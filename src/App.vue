@@ -163,12 +163,14 @@ export default {
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
     );
+
     if (windowData.filter) {
       this.filter = windowData.filter;
     }
     if (windowData.page) {
       this.page = windowData.page;
     }
+
     const tickersData = localStorage.getItem("cryptonomicon-list");
     if (tickersData) {
       this.tickers = JSON.parse(tickersData);
@@ -209,6 +211,13 @@ export default {
       return this.graph.map(
         (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
+    },
+
+    pageStateOptions() {
+      return {
+        filter: this.filter,
+        page: this.page
+      };
     }
   },
   methods: {
@@ -224,7 +233,7 @@ export default {
         if (this.selectedTicker?.name === tickerName) {
           this.graph.push(data.USD);
         }
-      }, 8000);
+      }, 12000);
     },
 
     add() {
@@ -232,9 +241,10 @@ export default {
         name: this.ticker,
         price: "-"
       };
-      this.tickers.push(currentTicker);
+
+      this.tickers = [...this.tickers, currentTicker];
       this.filter = "";
-      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
+
       this.subscribeToUpdates(currentTicker.name);
       this.ticker = "";
     },
@@ -254,24 +264,26 @@ export default {
     selectedTicker() {
       this.graph = [];
     },
+
+    tickers() {
+      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
+    },
+
     paginatedTickers() {
       if (this.paginatedTickers == 0 && this.page > 1) {
         this.page--;
       }
     },
+
     filter() {
       this.page = 1;
-      window.history.pushState(
-        null,
-        document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
-      );
     },
-    page() {
+
+    pageStateOptions(value) {
       window.history.pushState(
         null,
         document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
+        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
       );
     }
   }
